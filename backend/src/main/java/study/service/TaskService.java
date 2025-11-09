@@ -19,11 +19,10 @@ public class TaskService {
     private UserResponseRepository userResponseRepository;
 
     public Task getTaskById(Long id) {
-        //return taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
-        return null;
+        return taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
     }
 
     public void saveUserResponse(UserResponse response) {
-        //userResponseRepository.save(response);
+        userResponseRepository.save(response);
     }
 }
