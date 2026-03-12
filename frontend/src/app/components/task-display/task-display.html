@@ -1,0 +1,12 @@
+<div class="task-display">
+  @if (isEmailOrPost && safeHtml) {
+    <div class="content html" [innerHTML]="safeHtml"></div>
+  } @else if (kind === 'site' && payload) {
+    <div class="content site">
+      <p>Link: <a [href]="payload" target="_blank" rel="noopener noreferrer">{{ payload }}</a></p>
+      @if (safeUrl) {
+        <iframe [src]="safeUrl" class="preview" title="Preview"></iframe>
+      }
+    </div>
+  }
+</div>

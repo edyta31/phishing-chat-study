@@ -1,0 +1,49 @@
+<div class="task-flow">
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else if (step() === 'task' && task(); as t) {
+    <div class="layout">
+      <main class="content">
+        <h2>{{ t.title }}</h2>
+        <app-task-display [payload]="t.payload" [kind]="t.kind"></app-task-display>
+        <div class="decision">
+          <p>Is this phishing or legitimate?</p>
+          <div class="buttons">
+            <button type="button" class="btn btn-phish" [class.active]="decision() === 'phish'" (click)="setDecision('phish')">Phishing</button>
+            <button type="button" class="btn btn-legit" [class.active]="decision() === 'legit'" (click)="setDecision('legit')">Legitimate</button>
+          </div>
+          <div class="confidence">
+            <label>How confident are you? (1–5)</label>
+            <input type="range" min="1" max="5" [value]="confidence()" (input)="confidence.set(+$any($event.target).value)">
+            <span>{{ confidence() }}</span>
+          </div>
+          <button type="button" class="btn btn-primary" [disabled]="!decision()" (click)="continueToAfter()">Continue</button>
+        </div>
+      </main>
+      <aside class="chat-panel">
+        <app-chatbot [trialId]="t.trialId" (chatUsed)="onChatUsed()"></app-chatbot>
+      </aside>
+    </div>
+  } @else if (step() === 'after') {
+    <div class="after-questions">
+      <h2>A few questions about this task</h2>
+      <div class="field">
+        <label>Did you use the chatbot assistant for this task?</label>
+        <div class="buttons">
+          <button type="button" class="btn" [class.active]="afterUsedChatbot() === true" (click)="afterUsedChatbot.set(true)">Yes</button>
+          <button type="button" class="btn" [class.active]="afterUsedChatbot() === false" (click)="afterUsedChatbot.set(false)">No</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>How much did you trust the chatbot's advice? (1 = not at all, 5 = very much)</label>
+        <input type="range" min="1" max="5" [value]="trustInBot()" (input)="trustInBot.set(+$any($event.target).value)">
+        <span>{{ trustInBot() }}</span>
+      </div>
+      <button type="button" class="btn btn-primary" [disabled]="submitting()" (click)="submitAndNext()">
+        {{ isLastTask() ? 'Finish study' : 'Next task' }}
+      </button>
+    </div>
+  }
+</div>

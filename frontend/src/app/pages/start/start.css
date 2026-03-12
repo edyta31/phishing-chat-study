@@ -1,0 +1,7 @@
+.start {
+  padding: 2rem;
+  text-align: center;
+}
+.start .error {
+  color: #c00;
+}

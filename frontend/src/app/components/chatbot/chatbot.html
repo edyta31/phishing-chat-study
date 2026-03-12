@@ -1,0 +1,23 @@
+<div class="chatbot">
+  <button type="button" class="toggle" (click)="toggle()">
+    {{ open() ? 'Close assistant' : 'Open assistant' }}
+  </button>
+  @if (open()) {
+    <div class="panel">
+      <div class="messages">
+        @for (msg of messages(); track $index) {
+          <div class="msg" [class.user]="msg.role === 'user'" [class.bot]="msg.role === 'bot'">
+            {{ msg.text }}
+          </div>
+        }
+        @if (loading()) {
+          <div class="msg bot">…</div>
+        }
+      </div>
+      <div class="input-row">
+        <input type="text" [value]="inputText()" (input)="inputText.set($any($event.target).value)" (keydown.enter)="send()" placeholder="Ask about this item…">
+        <button type="button" class="send" (click)="send()">Send</button>
+      </div>
+    </div>
+  }
+</div>
