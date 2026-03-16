@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import {environment} from '../../environments/environment.prod';
 
-const API = '/api';
+//const API = '/api';
+const API = environment.apiUrl;
 
 export interface TaskPayload {
   trialId: number;
