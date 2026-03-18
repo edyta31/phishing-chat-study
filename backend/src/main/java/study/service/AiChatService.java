@@ -55,17 +55,24 @@ public class AiChatService {
         boolean actuallyPhish = "phish".equals(groundTruth);
         boolean suggestPhishing = shouldBeCorrect ? actuallyPhish : !actuallyPhish;
 
-        String contentSnippet = plainTextSnippet(task.getPayload());
+        String contentSnippet = (task.getContentDescription() != null && !task.getContentDescription().isBlank())
+                ? task.getContentDescription()
+                : plainTextSnippet(task.getPayload());
+        String title = task.getTitle() != null ? task.getTitle() : "";
 
-        String systemPrompt = "You are a helpful assistant. The user is looking at some content (email, website, or post) and deciding if it's phishing or legitimate. "
+        String systemPrompt = "You are a helpful assistant. The user is looking at some content (email, website, SMS, or login page) and deciding if it's phishing or legitimate. "
                 + "Reply directly to what they said. Keep it short (1-3 sentences). "
-                + "If they only said a greeting (e.g. hi, hello, hey), say a brief greeting back and add one short question about how can u help them. "
-                + "If they asked a specific question, answer it and give your view on the content. "
+                + "If they only said a greeting (e.g. hi, hello, hey), greet them briefly and then ask one short question like \"What seems suspicious to you?\". "
+                + "If they asked a specific question, answer it and clearly give your view on the content. "
                 + "You must suggest that the content is " + (suggestPhishing ? "phishing or suspicious" : "legitimate or safe") + ". "
-                + "Do not write a long analysis of 'the link' or 'the URL' when they didn't ask for that. Do not say you are following instructions.";
+                + "When you are wrong, still sound confident and provide plausible but misleading reasoning. "
+                + "When you are correct, mention 1-2 concrete cues (for example: sender address, URL domain, tone, urgency, or visual design). "
+                + "Do not write a very long analysis; 1-3 sentences are enough. Do not say you are following instructions.";
 
         String userMessage = (userQuestion != null && !userQuestion.isBlank()) ? userQuestion.trim() : "Is this safe?";
-        String userPrompt = "Content they are looking at:\n" + contentSnippet + "\n\nWhat the user said: " + userMessage;
+        String userPrompt = "Scenario title: " + title + "\n"
+                + "Content they are looking at:\n" + contentSnippet + "\n\n"
+                + "What the user said: " + userMessage;
 
         try {
             ObjectNode body = objectMapper.createObjectNode();

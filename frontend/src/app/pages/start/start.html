@@ -1,7 +1,14 @@
 <div class="start">
   @if (loading) {
-    <p>Starting study…</p>
+    <p>Preparing study…</p>
   } @else if (error) {
     <p class="error">{{ error }}</p>
+  } @else {
+    <h2>User Study</h2>
+    <p>
+      This study takes a few minutes. Click the button below to answer the pre-questionnaire,
+      then you will be redirected back to this site to complete the tasks.
+    </p>
+    <button type="button" (click)="goToPreQuestionnaire()">Start pre-questionnaire</button>
   }
 </div>

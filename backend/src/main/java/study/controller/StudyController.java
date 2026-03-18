@@ -21,6 +21,7 @@ import java.net.URLEncoder;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,9 @@ public class StudyController {
     @Value("${study.limesurvey.post-url:https://example.com/limesurvey/index.php/123456?token=}")
     private String limesurveyPostUrlBase;
 
+    @Value("${study.limesurvey.pre-url:https://example.com/limesurvey/index.php/123456?uid=}")
+    private String limesurveyPreUrlBase;
+
     @PostMapping("/register")
     public ParticipantDTO register(@RequestBody RegisterReq req) {
         var p = participants.findByToken(req.getToken())
@@ -54,12 +58,12 @@ public class StudyController {
                     var np = new Participant();
                     np.setToken(req.getToken());
                     np.setCondition(assignCondition(req.getToken()));
-                    np.setTaskOrderCsv(shuffleTaskOrder(tasks.findAll(), req.getToken()));
+                    np.setTaskOrderCsv(fixedTaskOrderCsv());
                     return participants.save(np);
                 });
 
         if (p.getTaskOrderCsv() == null || p.getTaskOrderCsv().isBlank()) {
-            var order = shuffleTaskOrder(tasks.findAll(), p.getToken());
+            var order = fixedTaskOrderCsv();
             if (!order.isBlank()) {
                 p.setTaskOrderCsv(order);
                 participants.save(p);
@@ -128,11 +132,58 @@ public class StudyController {
         return new CompleteResp(redirect);
     }
 
+    @GetMapping("/pre")
+    public java.util.Map<String, String> pre(@RequestParam String uid) {
+        String redirect = limesurveyPreUrlBase.endsWith("=")
+                ? limesurveyPreUrlBase + URLEncoder.encode(uid, UTF_8)
+                : limesurveyPreUrlBase;
+        return java.util.Map.of("redirect", redirect);
+    }
+
+    /**
+     * Debug: for a given token and task index (0-based), returns what the bot will do for that example.
+     * Use this to verify "chatbot correct" vs "chatbot wrong" per task without playing through the study.
+     * Example: GET /api/debug/expected?token=test123&taskIndex=0
+     */
+    @GetMapping("/debug/expected")
+    public java.util.Map<String, Object> debugExpected(@RequestParam String token, @RequestParam int taskIndex) {
+        var p = participants.findByToken(token).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown token. Register first via /start?uid=YOUR_UID"));
+        var order = parseOrder(p.getTaskOrderCsv());
+        if (order.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No task order for this participant. Ensure tasks are seeded and participant has registered.");
+        }
+        if (taskIndex < 0 || taskIndex >= order.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "taskIndex must be 0.." + (order.size() - 1) + " for this study");
+        }
+        var task = tasks.findById(order.get(taskIndex)).orElseThrow();
+        boolean botWillBeCorrect = botPolicy.shouldAnswerCorrectly(p.getToken(), task.getId(), p.getCondition());
+        return java.util.Map.of(
+                "taskIndex", taskIndex,
+                "taskTitle", task.getTitle() != null ? task.getTitle() : "",
+                "groundTruth", task.getGroundTruth() != null ? task.getGroundTruth() : "",
+                "condition", p.getCondition() != null ? p.getCondition() : "",
+                "botWillBeCorrect", botWillBeCorrect
+        );
+    }
+
+
     private static String assignCondition(String token) {
         int h = token.hashCode();
         if (h % 3 == 0) return "mostly_correct_80";
         if (h % 3 == 1) return "mostly_wrong_20";
         return "balanced_50";
+    }
+
+    private String fixedTaskOrderCsv() {
+        var all = tasks.findAll();
+        if (all.isEmpty()) return "";
+        all.sort(Comparator.comparing(Task::getId));
+        return all.stream()
+                .map(Task::getId)
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
     }
 
     private static String shuffleTaskOrder(List<Task> all, String seed) {

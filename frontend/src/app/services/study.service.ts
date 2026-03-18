@@ -81,4 +81,8 @@ export class StudyService {
     if (!t) throw new Error('No token');
     return this.http.get<{ redirect: string }>(`${API}/complete`, { params: { token: t } });
   }
+
+  getPreQuestionnaireRedirect(uid: string): Observable<{ redirect: string }> {
+    return this.http.get<{ redirect: string }>(`${API}/pre`, { params: { uid } });
+  }
 }

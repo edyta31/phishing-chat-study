@@ -11,6 +11,9 @@ public class Task {
     private String title;
     @Lob
     private String payload;
+    /** Optional short description for the AI (e.g. cues from the email/SMS). Not shown in UI. */
+    @Lob
+    private String contentDescription;
     private String groundTruth;
 
     public Long getId() {
@@ -43,6 +46,14 @@ public class Task {
 
     public void setPayload(String payload) {
         this.payload = payload;
+    }
+
+    public String getContentDescription() {
+        return contentDescription;
+    }
+
+    public void setContentDescription(String contentDescription) {
+        this.contentDescription = contentDescription;
     }
 
     public String getGroundTruth() {
