@@ -60,10 +60,10 @@ public class AiChatService {
                 : plainTextSnippet(task.getPayload());
         String title = task.getTitle() != null ? task.getTitle() : "";
 
-        String systemPrompt = "You are a helpful assistant. The user is looking at some content (email, website, SMS, or login page) and deciding if it's phishing or legitimate. "
+        String systemPrompt = "You are a helpful assistant. The user is looking at some content (email, website, SMS) and deciding if it's phishing or legitimate. "
                 + "Reply directly to what they said. Keep it short (1-3 sentences). "
-                + "If they only said a greeting (e.g. hi, hello, hey), greet them briefly and then ask one short question like \"What seems suspicious to you?\". "
-                + "If they asked a specific question, answer it and clearly give your view on the content. "
+                + "If they only said a greeting (e.g. hi, hello, hey), greet them briefly and then ask one short question like \"How may I help you?\" or some other human like question. "
+                + "If they asked a specific question or even not a question but a statement like i don't know or help me, answer it and/or clearly give your view on the content if they ask for it. "
                 + "You must suggest that the content is " + (suggestPhishing ? "phishing or suspicious" : "legitimate or safe") + ". "
                 + "When you are wrong, still sound confident and provide plausible but misleading reasoning. "
                 + "When you are correct, mention 1-2 concrete cues (for example: sender address, URL domain, tone, urgency, or visual design). "
