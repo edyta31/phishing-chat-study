@@ -14,7 +14,7 @@ export class TaskDisplay {
   constructor(private sanitizer: DomSanitizer) {}
 
   get safeHtml(): SafeHtml | null {
-    if (this.kind === 'email' || this.kind === 'post') {
+    if (this.kind === 'email' || this.kind === 'post' || this.kind === 'sms' || this.kind === 'site') {
       return this.sanitizer.bypassSecurityTrustHtml(this.payload || '');
     }
     return null;
@@ -28,6 +28,6 @@ export class TaskDisplay {
   }
 
   get isEmailOrPost(): boolean {
-    return this.kind === 'email' || this.kind === 'post';
+    return this.kind === 'email' || this.kind === 'post' || this.kind === 'sms' || this.kind === 'site';
   }
 }
