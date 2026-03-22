@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
-import {environment} from '../../environments/environment.prod';
+import { Observable, of, tap } from 'rxjs';
+import { environment } from '../../environments/environment.prod';
+import { MOCK_STUDY_LOCAL, MOCK_NEXT_TASK_RESULT } from '../dev-mock-study';
 
 //const API = '/api';
 const API = environment.apiUrl;
@@ -41,7 +42,15 @@ export class StudyService {
 
   constructor(private http: HttpClient) {}
 
+  /** True when local mock mode is on (see dev-mock-study.ts). */
+  isMockStudy(): boolean {
+    return MOCK_STUDY_LOCAL;
+  }
+
   getStoredToken(): string | null {
+    if (MOCK_STUDY_LOCAL) {
+      return this.token ?? sessionStorage.getItem('studyToken') ?? 'mock-local';
+    }
     return this.token ?? sessionStorage.getItem('studyToken');
   }
 
@@ -51,18 +60,32 @@ export class StudyService {
   }
 
   register(token: string): Observable<RegisterResult> {
+    if (MOCK_STUDY_LOCAL) {
+      return of({ token, totalTasks: MOCK_NEXT_TASK_RESULT.totalTasks }).pipe(
+        tap(() => this.setToken(token))
+      );
+    }
     return this.http.post<RegisterResult>(`${API}/register`, { token }).pipe(
       tap(() => this.setToken(token))
     );
   }
 
   getNextTask(): Observable<NextTaskResult> {
+    if (MOCK_STUDY_LOCAL) {
+      return of(MOCK_NEXT_TASK_RESULT);
+    }
     const t = this.getStoredToken();
     if (!t) throw new Error('No token');
     return this.http.get<NextTaskResult>(`${API}/next`, { params: { token: t } });
   }
 
   sendChat(trialId: number, userText: string): Observable<{ answer: string }> {
+    if (MOCK_STUDY_LOCAL) {
+      return of({
+        answer:
+          '(Local preview) This is a placeholder reply. The live study uses the server assistant.'
+      });
+    }
     const t = this.getStoredToken();
     if (!t) throw new Error('No token');
     return this.http.post<{ answer: string }>(`${API}/chat`, {
@@ -73,16 +96,25 @@ export class StudyService {
   }
 
   submitDecision(payload: DecidePayload): Observable<{ done: boolean }> {
+    if (MOCK_STUDY_LOCAL) {
+      return of({ done: true });
+    }
     return this.http.post<{ done: boolean }>(`${API}/decide`, payload);
   }
 
   getCompleteRedirect(): Observable<{ redirect: string }> {
+    if (MOCK_STUDY_LOCAL) {
+      return of({ redirect: '' });
+    }
     const t = this.getStoredToken();
     if (!t) throw new Error('No token');
     return this.http.get<{ redirect: string }>(`${API}/complete`, { params: { token: t } });
   }
 
   getPreQuestionnaireRedirect(uid: string): Observable<{ redirect: string }> {
+    if (MOCK_STUDY_LOCAL) {
+      return of({ redirect: '/study' });
+    }
     return this.http.get<{ redirect: string }>(`${API}/pre`, { params: { uid } });
   }
 }

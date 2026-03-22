@@ -26,6 +26,8 @@ export class TaskFlow implements OnInit {
   trustInBot = signal(3);
   afterUsedChatbot = signal<boolean | null>(null);
   submitting = signal(false);
+  /** Shown when mock mode finishes instead of an external redirect. */
+  localPreviewComplete = signal(false);
 
   isLastTask = computed(() => {
     const idx = this.currentIndex();
@@ -113,6 +115,10 @@ export class TaskFlow implements OnInit {
   private redirectToPostQuestionnaire(): void {
     this.study.getCompleteRedirect().subscribe({
       next: (res) => {
+        if (!res.redirect) {
+          this.localPreviewComplete.set(true);
+          return;
+        }
         window.location.href = res.redirect;
       },
       error: () => {

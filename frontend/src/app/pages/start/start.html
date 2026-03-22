@@ -1,14 +1,33 @@
-<div class="start">
+<div class="flex min-h-[calc(100vh-2rem)] flex-col items-center justify-center px-4 py-16 sm:py-24">
   @if (loading) {
-    <p>Preparing study…</p>
+    <div class="flex flex-col items-center gap-4">
+      <div class="h-10 w-10 animate-spin rounded-full border-2 border-teal-200 border-t-teal-600" aria-hidden="true"></div>
+      <p class="text-sm font-medium text-slate-600">Preparing your session…</p>
+    </div>
   } @else if (error) {
-    <p class="error">{{ error }}</p>
+    <div class="max-w-md rounded-2xl border border-red-200 bg-red-50/90 px-6 py-5 text-center text-sm text-red-900 shadow-sm">
+      {{ error }}
+    </div>
   } @else {
-    <h2>User Study</h2>
-    <p>
-      This study takes a few minutes. Click the button below to answer the pre-questionnaire,
-      then you will be redirected back to this site to complete the tasks.
-    </p>
-    <button type="button" (click)="goToPreQuestionnaire()">Start pre-questionnaire</button>
+    <div class="w-full max-w-lg text-center">
+      <div class="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 shadow-lg shadow-teal-500/25" aria-hidden="true">
+        <svg class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <h1 class="font-display text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Phishing awareness study</h1>
+      <p class="mt-4 text-base leading-relaxed text-slate-600">
+        This will take about 15-20 minutes. <br /> You’ll answer a short questionnaire first, then return here to review examples and share your judgments.
+        At the end you’ll return to the questionnaire to share your thoughts and feedback.
+      </p>
+      <p class="mt-2 text-sm text-slate-500">Your responses are used for research only.</p>
+      <button
+        type="button"
+        (click)="goToPreQuestionnaire()"
+        class="mt-10 inline-flex min-h-[48px] min-w-[14rem] items-center justify-center rounded-xl bg-teal-600 px-8 py-3.5 text-sm font-semibold text-white shadow-md shadow-teal-600/20 transition hover:bg-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+      >
+        Start pre-questionnaire
+      </button>
+    </div>
   }
 </div>

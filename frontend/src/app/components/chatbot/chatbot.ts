@@ -8,6 +8,13 @@ import { StudyService } from '../../services/study.service';
   styleUrl: './chatbot.css'
 })
 export class Chatbot {
+  /** Served from `public/examples/` (see angular.json assets). */
+  readonly assistantAvatarSrc = '/examples/chatbotAvatar.svg';
+
+  /** Shown in the peek bubble (collapsed) and as the first assistant turn when the thread is empty. */
+  readonly assistantIntro =
+    "Hi — I'm Edyta, your study assistant. If anything feels unclear or you want to think the example through together, just message me. Happy to help :)";
+
   @Input() trialId = 0;
   @Output() chatUsed = new EventEmitter<void>();
 
