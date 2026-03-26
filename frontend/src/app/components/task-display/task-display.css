@@ -8,6 +8,7 @@
   max-height: min(55vh, 32rem);
   border-radius: 0.5rem;
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+  cursor: zoom-in;
 }
 
 :host ::ng-deep .content.html a {
