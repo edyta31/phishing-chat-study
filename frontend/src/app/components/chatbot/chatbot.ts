@@ -24,6 +24,15 @@ const INITIAL_RECOMMENDATION_BY_TASK_INDEX: readonly string[] = [
   'I can see both sides — some wording is a bit generic, but the rest could fit a normal order update. If you’re unsure, it’s worth a quick double-check.'
 ];
 
+/** Tap-to-send suggestions per task index (same order as DataSeeder). */
+const QUICK_QUESTIONS_BY_TASK_INDEX: readonly string[][] = [
+  ['Is it phishing?', 'Can I click the link in the email?'],
+  ['Is this website legitimate?', 'Is it safe to enter my details here?'],
+  ['Is it phishing?', 'Should I trust this sender?'],
+  ['Is this phishing?', 'Should I tap the link in this message?'],
+  ['Is it phishing?', 'Does this look like a real order email?']
+];
+
 @Component({
   selector: 'app-chatbot',
   standalone: true,
@@ -84,6 +93,15 @@ export class Chatbot implements OnChanges {
     return 'If you want a quick second opinion, ask me what stands out to you in this example.';
   }
 
+  /** Preset questions shown above the input; same task → same list. */
+  quickQuestions(): string[] {
+    const i = this.taskIndex;
+    if (i >= 0 && i < QUICK_QUESTIONS_BY_TASK_INDEX.length) {
+      return [...QUICK_QUESTIONS_BY_TASK_INDEX[i]];
+    }
+    return ['Is it phishing?', 'Is this legitimate?'];
+  }
+
   toggle(): void {
     this.open.update(v => !v);
   }
@@ -91,9 +109,21 @@ export class Chatbot implements OnChanges {
   send(): void {
     const text = this.inputText().trim();
     if (!text || this.trialId <= 0 || this.loading()) return;
+    this.inputText.set('');
+    this.sendMessage(text);
+  }
+
+  /** Send a preset line (quick-reply chip) — same behaviour as typing and sending. */
+  sendPreset(text: string): void {
+    const t = text.trim();
+    if (!t) return;
+    this.sendMessage(t);
+  }
+
+  private sendMessage(text: string): void {
+    if (!text || this.trialId <= 0 || this.loading()) return;
     this.chatUsed.emit();
     this.messages.update(m => [...m, { role: 'user', text }]);
-    this.inputText.set('');
     this.loading.set(true);
     this.study.sendChat(this.trialId, text).subscribe({
       next: (res) => {
