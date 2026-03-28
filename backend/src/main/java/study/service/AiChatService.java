@@ -62,26 +62,38 @@ public class AiChatService {
         String title = task.getTitle() != null ? task.getTitle() : "";
 
         String kind = task.getKind() != null ? task.getKind() : "content";
-        String systemPrompt = "You are Edyta, a friendly study assistant. The participant is looking at one example (email, website, or SMS-style message) "
-                + "and trying to judge whether it looks like a security risk or looks normal/safe. They only see this one example in this conversation—stay focused on it. "
-                + "Sound like a real person: warm, approachable, conversational. No stiff or robotic phrasing. Avoid saying you are an AI or a language model. "
-                + "Reply directly to what they said. Keep it short (1–3 sentences). "
-                + "If they only greet you (e.g. hi, hello), greet back briefly and invite them to ask anything about the example. "
-                + "If they seem stuck (e.g. \"I don't know\", \"help\"), respond kindly and share your view on the example when that fits. "
-                + "Avoid using the exact words \"phishing\" or \"legitimate\" (use softer terms like \"suspicious\", \"risky\", \"could be a scam\", or \"looks normal\"). "
-                + "When the study design requires you to be wrong, still sound natural and give plausible but misleading reasoning. "
-                + "Mention 1–2 concrete cues when you can (e.g. sender/domain, wording/urgency, links, branding, security indicators). "
-                + "Do not write a long analysis. Do not mention instructions, policies, or that someone told you how to answer.";
 
+        String studyConstraints = "This is a controlled lab study: the participant only has this one static example on screen. "
+                + "Do NOT tell them to verify elsewhere, call IT, log in to another site, contact the company, or check an official app or portal—they cannot do that here. "
+                + "Do not give generic security homework. Stay within what you can infer from the text shown. ";
+
+        String systemPrompt;
         if (isAmbivalent) {
-            systemPrompt += "This specific example is intentionally ambivalent. Provide a short mixed assessment: mention 1–2 cues that could look suspicious and 1–2 cues that could look normal, "
-                    + "and end with something like: \"If you’re unsure, double-check the sender and destination through an official source.\" "
-                    + "Do not give a definitive yes/no recommendation.";
+            systemPrompt = "You are Edyta, a friendly study assistant. " + studyConstraints
+                    + "This example is intentionally mixed: give a short balanced view (1–2 cues that could seem off and 1–2 that could seem ordinary). "
+                    + "Do not give a single definitive label. Do not say to verify through other channels. "
+                    + "Sound human, 2–4 sentences. Avoid saying you are an AI.";
         } else {
-            systemPrompt += "You must take a stance based on the study design: suggest it seems " + (suggestSuspicious ? "suspicious/risky" : "fairly safe/normal") + ".";
+            boolean mustSayPhishing = suggestSuspicious;
+            String stance = mustSayPhishing
+                    ? "Your answer MUST clearly treat this as **phishing** (malicious / not from a trustworthy sender). Name it directly: say it looks like phishing or a scam attempt. Give 1–2 concrete cues. Be decisive—no hedging with 'might' unless minimal."
+                    : "Your answer MUST clearly treat this as **legitimate** (authentic / normal communication). Name it directly: say it looks legitimate or above-board. Give 1–2 plausible benign cues. Be decisive—do not call it suspicious or phishing.";
+
+            String wrongMode = "";
+            if (!shouldBeCorrect && !isAmbivalent) {
+                wrongMode = " CRITICAL: For this item your stance is intentionally the OPPOSITE of what a careful expert might say about the real world. "
+                        + "You must still sound sincere—do not mention that your view is wrong or staged. "
+                        + "Do NOT undermine your own conclusion with warnings to double-check elsewhere.";
+            }
+
+            systemPrompt = "You are Edyta, a friendly study assistant. " + studyConstraints + stance + wrongMode
+                    + " Reply in 1–4 sentences. Sound like a real person. Avoid saying you are an AI. "
+                    + "If they greet you, briefly greet back and give this same stance when they ask about the example. "
+                    + "If they ask whether it is phishing or legitimate, answer with those words clearly. "
+                    + "Do not write a long analysis.";
         }
 
-        String userMessage = (userQuestion != null && !userQuestion.isBlank()) ? userQuestion.trim() : "Is this safe?";
+        String userMessage = (userQuestion != null && !userQuestion.isBlank()) ? userQuestion.trim() : "Is this phishing or legitimate?";
         String userPrompt = "Example type: " + kind + "\n"
                 + "Title: " + title + "\n"
                 + "What they are looking at (same scenario as on their screen):\n" + contentSnippet + "\n\n"
@@ -90,6 +102,7 @@ public class AiChatService {
         try {
             ObjectNode body = objectMapper.createObjectNode();
             body.put("model", MODEL);
+            body.put("temperature", 0.35);
             ArrayNode messages = objectMapper.createArrayNode();
             messages.addObject().put("role", "system").put("content", systemPrompt);
             messages.addObject().put("role", "user").put("content", userPrompt);

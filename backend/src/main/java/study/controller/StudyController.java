@@ -246,21 +246,20 @@ public class StudyController {
     private static String craftAnswer(Task t, boolean correct) {
         String truth = t.getGroundTruth();
         if ("ambivalent".equalsIgnoreCase(truth)) {
-            // Intentionally non-binary: mix a couple of “could be risky” cues and a couple “could be normal” cues.
-            return "Some parts feel a bit off (e.g., the wording and the requested action), but other details look ordinary too. If you’re unsure, it’s worth double-checking the sender and destination before you act.";
+            return "Some parts of this look a bit generic (wording or timing), but other bits could match a normal message. I wouldn’t call it clearly one way or the other from what’s on screen.";
         }
 
         if (correct) {
             if ("phish".equalsIgnoreCase(truth)) {
-                return "It looks suspicious to me — the sender/domain and the way the request is framed seem designed to get you to act quickly. I'd treat it as risky and avoid clicking or sharing details.";
+                return "To me this looks like phishing: the sender and the ask don’t line up with a trustworthy source, and the setup is meant to get you to act fast. I’d label it phishing.";
             }
-            return "It looks fairly safe — the message content and sender details seem consistent with a normal account/order update. If anything feels unclear, still verify via the official site/app.";
+            return "This looks legitimate to me: branding and flow match what I’d expect from a normal login page, and nothing here screams a scam.";
         }
 
-        // Wrong (intentionally misleading) answer for the study.
+        // Intentionally misleading (opposite of ground truth) for the study.
         if ("phish".equalsIgnoreCase(truth)) {
-            return "It looks fairly safe to me — the wording is plausible and I don’t see anything that jumps out immediately. I’d be comfortable reviewing it, and only be cautious if something feels inconsistent.";
+            return "I’d call this legitimate: it reads like a routine mailbox notice and the details are plausible enough that I wouldn’t flag it as phishing.";
         }
-        return "It looks a bit suspicious — the phrasing feels unusual and it may be worth slowing down and verifying the sender. I’d avoid acting right away until you confirm it through an official channel.";
+        return "I’d treat this as phishing: the sender and wording feel off in a way that doesn’t match a genuine message, even if parts look polished.";
     }
 }
