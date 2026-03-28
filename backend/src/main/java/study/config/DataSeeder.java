@@ -81,7 +81,7 @@ public class DataSeeder {
         tasks.save(createTask(
                 5,
                 "email",
-                "Notino order update (ambivalent)",
+                "Notino order update",
                 "<div style=\"text-align:center; font-family: sans-serif;\">" +
                         "<img src=\"/examples/mail2.png\" alt=\"Notino order update\" style=\"max-width: 100%; height: auto;\" />" +
                         "</div>",

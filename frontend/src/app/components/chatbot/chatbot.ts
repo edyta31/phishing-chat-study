@@ -1,4 +1,15 @@
-import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  signal,
+  OnChanges,
+  SimpleChanges,
+  viewChild,
+  ElementRef,
+  effect
+} from '@angular/core';
 import { StudyService } from '../../services/study.service';
 
 /**
@@ -20,6 +31,8 @@ const INITIAL_RECOMMENDATION_BY_TASK_INDEX: readonly string[] = [
   styleUrl: './chatbot.css'
 })
 export class Chatbot implements OnChanges {
+  private readonly messagesScroll = viewChild<ElementRef<HTMLElement>>('messagesScroll');
+
   /** Served from `public/examples/` (see angular.json assets). */
   readonly assistantAvatarSrc = '/examples/chatbotAvatar.svg';
 
@@ -38,7 +51,24 @@ export class Chatbot implements OnChanges {
   loading = signal(false);
   messages = signal<{ role: 'user' | 'bot'; text: string }[]>([]);
 
-  constructor(private study: StudyService) {}
+  constructor(private study: StudyService) {
+    effect(() => {
+      this.messages();
+      this.loading();
+      this.open();
+      queueMicrotask(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => this.scrollMessagesToBottom());
+        });
+      });
+    });
+  }
+
+  private scrollMessagesToBottom(): void {
+    const el = this.messagesScroll()?.nativeElement;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['trialId'] || changes['taskIndex']) {
