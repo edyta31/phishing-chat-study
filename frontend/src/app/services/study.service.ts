@@ -36,6 +36,10 @@ export interface DecidePayload {
   trustInBot?: number;
 }
 
+export interface StudyPublicConfig {
+  allowSkipPreQuestionnaire: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class StudyService {
   private token: string | null = null;
@@ -57,6 +61,14 @@ export class StudyService {
   setToken(t: string): void {
     this.token = t;
     sessionStorage.setItem('studyToken', t);
+  }
+
+  /** Whether this deployment allows skipping LimeSurvey (see /start?skipPre=1). */
+  getStudyConfig(): Observable<StudyPublicConfig> {
+    if (MOCK_STUDY_LOCAL) {
+      return of({ allowSkipPreQuestionnaire: true });
+    }
+    return this.http.get<StudyPublicConfig>(`${API}/config`);
   }
 
   register(token: string): Observable<RegisterResult> {

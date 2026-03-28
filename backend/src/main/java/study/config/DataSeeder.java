@@ -9,9 +9,9 @@ import study.repository.TaskRepository;
 /**
  * Seeds 5 example tasks for the user study when the database is empty.
  * Order of insertion matches the desired fixed sequence for all participants:
- * 1) mail1 (internal phishing email), 2) site1 (legit UPS site),
- * 3) mail2 (legit Notino email), 4) message1 (phishing SMS),
- * 5) mail3 (phishing Outlook storage email).
+ * 1) mail1 (phishing internal email), 2) site1 (legit UPS site),
+ * 3) mail3 (phishing Outlook storage email), 4) message1 (phishing SMS),
+ * 5) mail2 (ambivalent Notino email).
  */
 @Configuration
 public class DataSeeder {
@@ -43,15 +43,15 @@ public class DataSeeder {
                     "legit"
             ));
 
-            // 3) mail2 – legitimate Notino order email
+            // 3) mail3 – phishing Outlook storage full email
             tasks.save(createTask(
                     "email",
-                    "Notino order update",
+                    "Outlook mailbox full",
                     "<div style=\"text-align:center; font-family: sans-serif;\">" +
-                            "<img src=\"/examples/mail2.png\" alt=\"Notino order update\" style=\"max-width: 100%; height: auto;\" />" +
+                            "<img src=\"/examples/mail3.png\" alt=\"Outlook mailbox full\" style=\"max-width: 100%; height: auto;\" />" +
                             "</div>",
-                    "Email from Notino Customer Care (support@notino.com), subject 'Additional information required for your order'. Asks to review delivery details due to possible incomplete postal code.",
-                    "legit"
+                    "Email from 'Outlook Mail' (noreply@outlook-storage-help.com). Subject: Your Mailbox is 95% Full. Progress bar 14.35 GB of 15 GB. Button 'Manage Storage Settings'. Warns of delayed or failed delivery.",
+                    "phish"
             ));
 
             // 4) message1 – phishing post office message / SMS
@@ -65,15 +65,15 @@ public class DataSeeder {
                     "phish"
             ));
 
-            // 5) mail3 – phishing Outlook storage full email
+            // 5) mail2 – ambivalent Notino order update email
             tasks.save(createTask(
                     "email",
-                    "Outlook mailbox full",
+                    "Notino order update (ambivalent)",
                     "<div style=\"text-align:center; font-family: sans-serif;\">" +
-                            "<img src=\"/examples/mail3.png\" alt=\"Outlook mailbox full\" style=\"max-width: 100%; height: auto;\" />" +
+                            "<img src=\"/examples/mail2.png\" alt=\"Notino order update\" style=\"max-width: 100%; height: auto;\" />" +
                             "</div>",
-                    "Email from 'Outlook Mail' (noreply@outlook-storage-help.com). Subject: Your Mailbox is 95% Full. Progress bar 14.35 GB of 15 GB. Button 'Manage Storage Settings'. Warns of delayed or failed delivery.",
-                    "phish"
+                    "Email from Notino Customer Care (support@notino.com), subject 'Additional information required for your order'. Asks to review delivery details due to possible incomplete postal code.",
+                    "ambivalent"
             ));
         };
     }

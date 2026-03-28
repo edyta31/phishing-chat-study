@@ -1,5 +1,17 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { StudyService } from '../../services/study.service';
+
+/**
+ * Fixed order (see DataSeeder): mail1, site1, mail3, message1, mail2 (ambivalent).
+ * Short, deterministic “initial take” per task — same wording every time for the same example.
+ */
+const INITIAL_RECOMMENDATION_BY_TASK_INDEX: readonly string[] = [
+  'At first glance, this looks risky to me — the sender setup and the request don’t quite match a normal internal flow.',
+  'This looks like a normal UPS sign-in page to me — branding and the start of the flow look consistent.',
+  'This reads like a routine mailbox/storage notice — I’d treat it as normal unless something feels off to you.',
+  'This looks like a typical delivery update to me — nothing here jumps out as obviously wrong.',
+  'I can see both sides — some wording is a bit generic, but the rest could fit a normal order update. If you’re unsure, it’s worth a quick double-check.'
+];
 
 @Component({
   selector: 'app-chatbot',
@@ -7,7 +19,7 @@ import { StudyService } from '../../services/study.service';
   templateUrl: './chatbot.html',
   styleUrl: './chatbot.css'
 })
-export class Chatbot {
+export class Chatbot implements OnChanges {
   /** Served from `public/examples/` (see angular.json assets). */
   readonly assistantAvatarSrc = '/examples/chatbotAvatar.svg';
 
@@ -16,14 +28,31 @@ export class Chatbot {
     "Hi — I'm Edyta, your study assistant. If anything feels unclear or you want to think the example through together, just message me. Happy to help :)";
 
   @Input() trialId = 0;
+  /** 0-based position in the fixed study sequence (same example → same index → same initial recommendation). */
+  @Input() taskIndex = 0;
   @Output() chatUsed = new EventEmitter<void>();
 
-  open = signal(false);
+  /** Chat panel open by default so participants see the greeting and initial take without expanding. */
+  open = signal(true);
   inputText = signal('');
   loading = signal(false);
   messages = signal<{ role: 'user' | 'bot'; text: string }[]>([]);
 
   constructor(private study: StudyService) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['trialId'] || changes['taskIndex']) {
+      this.messages.set([]);
+    }
+  }
+
+  initialRecommendation(): string {
+    const i = this.taskIndex;
+    if (i >= 0 && i < INITIAL_RECOMMENDATION_BY_TASK_INDEX.length) {
+      return INITIAL_RECOMMENDATION_BY_TASK_INDEX[i];
+    }
+    return 'If you want a quick second opinion, ask me what stands out to you in this example.';
+  }
 
   toggle(): void {
     this.open.update(v => !v);

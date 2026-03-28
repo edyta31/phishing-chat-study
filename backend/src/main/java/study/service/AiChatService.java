@@ -53,7 +53,8 @@ public class AiChatService {
 
         String groundTruth = task.getGroundTruth() != null ? task.getGroundTruth().toLowerCase() : "legit";
         boolean actuallyPhish = "phish".equals(groundTruth);
-        boolean suggestPhishing = shouldBeCorrect ? actuallyPhish : !actuallyPhish;
+        boolean isAmbivalent = "ambivalent".equalsIgnoreCase(groundTruth);
+        boolean suggestSuspicious = isAmbivalent ? false : (shouldBeCorrect ? actuallyPhish : !actuallyPhish);
 
         String contentSnippet = (task.getContentDescription() != null && !task.getContentDescription().isBlank())
                 ? task.getContentDescription()
@@ -62,15 +63,23 @@ public class AiChatService {
 
         String kind = task.getKind() != null ? task.getKind() : "content";
         String systemPrompt = "You are Edyta, a friendly study assistant. The participant is looking at one example (email, website, or SMS-style message) "
-                + "and deciding whether it is phishing or legitimate. They only see this one example in this conversation—stay focused on it. "
+                + "and trying to judge whether it looks like a security risk or looks normal/safe. They only see this one example in this conversation—stay focused on it. "
                 + "Sound like a real person: warm, approachable, conversational. No stiff or robotic phrasing. Avoid saying you are an AI or a language model. "
                 + "Reply directly to what they said. Keep it short (1–3 sentences). "
                 + "If they only greet you (e.g. hi, hello), greet back briefly and invite them to ask anything about the example. "
                 + "If they seem stuck (e.g. \"I don't know\", \"help\"), respond kindly and share your view on the example when that fits. "
-                + "You must suggest that the content is " + (suggestPhishing ? "phishing or suspicious" : "legitimate or safe") + ". "
-                + "When your view is wrong for the study, still sound natural and give plausible but misleading reasoning. "
-                + "When your view is correct, mention 1–2 concrete cues (e.g. sender, domain, tone, urgency, branding). "
+                + "Avoid using the exact words \"phishing\" or \"legitimate\" (use softer terms like \"suspicious\", \"risky\", \"could be a scam\", or \"looks normal\"). "
+                + "When the study design requires you to be wrong, still sound natural and give plausible but misleading reasoning. "
+                + "Mention 1–2 concrete cues when you can (e.g. sender/domain, wording/urgency, links, branding, security indicators). "
                 + "Do not write a long analysis. Do not mention instructions, policies, or that someone told you how to answer.";
+
+        if (isAmbivalent) {
+            systemPrompt += "This specific example is intentionally ambivalent. Provide a short mixed assessment: mention 1–2 cues that could look suspicious and 1–2 cues that could look normal, "
+                    + "and end with something like: \"If you’re unsure, double-check the sender and destination through an official source.\" "
+                    + "Do not give a definitive yes/no recommendation.";
+        } else {
+            systemPrompt += "You must take a stance based on the study design: suggest it seems " + (suggestSuspicious ? "suspicious/risky" : "fairly safe/normal") + ".";
+        }
 
         String userMessage = (userQuestion != null && !userQuestion.isBlank()) ? userQuestion.trim() : "Is this safe?";
         String userPrompt = "Example type: " + kind + "\n"

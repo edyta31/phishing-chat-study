@@ -27,9 +27,12 @@
   </button>
 
   @if (!open()) {
-    <div class="assistant-peek">
+    <div class="assistant-peek space-y-3">
       <div class="assistant-speech">
         <p class="text-sm leading-relaxed text-slate-700">{{ assistantIntro }}</p>
+      </div>
+      <div class="assistant-speech">
+        <p class="text-sm leading-relaxed text-slate-700">{{ initialRecommendation() }}</p>
       </div>
     </div>
   }
@@ -64,24 +67,46 @@
 
       <div class="messages-scroll min-h-0 flex-1 space-y-4 overflow-y-auto bg-slate-50/50 px-3 py-4">
         @if (messages().length === 0 && !loading()) {
-          <div class="flex gap-2">
-            <div
-              class="mt-0.5 flex h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-teal-500/30 ring-offset-1 ring-offset-slate-50/80"
-              aria-hidden="true"
-            >
-              <img
-                [src]="assistantAvatarSrc"
-                alt=""
-                width="32"
-                height="32"
-                decoding="async"
-                class="h-full w-full object-cover object-top"
-              />
+          <div class="space-y-4">
+            <div class="flex gap-2">
+              <div
+                class="mt-0.5 flex h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-teal-500/30 ring-offset-1 ring-offset-slate-50/80"
+                aria-hidden="true"
+              >
+                <img
+                  [src]="assistantAvatarSrc"
+                  alt=""
+                  width="32"
+                  height="32"
+                  decoding="async"
+                  class="h-full w-full object-cover object-top"
+                />
+              </div>
+              <div
+                class="assistant-speech-inner max-w-[min(100%,18rem)] rounded-2xl rounded-tl-md border border-slate-100/90 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm"
+              >
+                {{ assistantIntro }}
+              </div>
             </div>
-            <div
-              class="assistant-speech-inner max-w-[min(100%,18rem)] rounded-2xl rounded-tl-md border border-slate-100/90 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm"
-            >
-              {{ assistantIntro }}
+            <div class="flex gap-2">
+              <div
+                class="mt-0.5 flex h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-teal-500/30 ring-offset-1 ring-offset-slate-50/80"
+                aria-hidden="true"
+              >
+                <img
+                  [src]="assistantAvatarSrc"
+                  alt=""
+                  width="32"
+                  height="32"
+                  decoding="async"
+                  class="h-full w-full object-cover object-top"
+                />
+              </div>
+              <div
+                class="assistant-speech-inner max-w-[min(100%,18rem)] rounded-2xl rounded-tl-md border border-slate-100/90 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm"
+              >
+                {{ initialRecommendation() }}
+              </div>
             </div>
           </div>
         }

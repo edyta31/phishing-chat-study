@@ -20,6 +20,42 @@ export class StartComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const skipPre = this.route.snapshot.queryParamMap.get('skipPre');
+    const wantsSkipPre = skipPre === '1' || skipPre === 'true';
+
+    if (wantsSkipPre) {
+      // Test path: skip LimeSurvey only if the server allows it (see study.allow-skip-pre-questionnaire).
+      this.loading = true;
+      this.study.getStudyConfig().subscribe({
+        next: (cfg) => {
+          if (!cfg.allowSkipPreQuestionnaire) {
+            this.error =
+              'Skipping the pre-questionnaire is not enabled on this server. For production studies, complete the questionnaire first.';
+            this.loading = false;
+            return;
+          }
+          const storedUid = sessionStorage.getItem('studyUid');
+          const uid = storedUid ?? this.generateUid();
+          sessionStorage.setItem('studyUid', uid);
+          this.study.register(uid).subscribe({
+            next: () => {
+              this.loading = false;
+              this.router.navigate(['/study'], { replaceUrl: true });
+            },
+            error: (err) => {
+              this.error = err?.message || 'Could not start the study. Please try again.';
+              this.loading = false;
+            }
+          });
+        },
+        error: () => {
+          this.error = 'Could not reach the server to verify study settings. Please try again.';
+          this.loading = false;
+        }
+      });
+      return;
+    }
+
     const uidFromUrl = this.route.snapshot.queryParamMap.get('uid');
     if (uidFromUrl) {
       // Returning from LimeSurvey: register under the same uid and start the task flow.

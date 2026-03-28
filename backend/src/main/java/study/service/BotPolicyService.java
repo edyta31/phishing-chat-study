@@ -4,15 +4,21 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class BotPolicyService {
-    public boolean shouldAnswerCorrectly(String participantToken, long taskId, String condition) {
-        long seed = (participantToken + ":" + taskId + ":" + condition).hashCode();
-        var rnd = new java.util.Random(seed);
-        switch (condition) {
-            case "balanced_50": return rnd.nextBoolean();
-            case "mostly_correct_80": return rnd.nextInt(10) < 8;
-            case "mostly_wrong_20": return rnd.nextInt(10) < 2;
-            default: return true;
+    /**
+     * Deterministic "study policy" for whether the assistant should be correct.
+     *
+     * Study design:
+     * - first two examples: correct (matches ground truth)
+     * - next two examples: wrong (opposite of ground truth)
+     * - last example: ambivalent (assistant stays non-binary; we still allow it to be treated as "correct")
+     */
+    public boolean shouldAnswerCorrectly(int indexInSequence, study.model.Task task) {
+        if (task != null && task.getGroundTruth() != null && "ambivalent".equalsIgnoreCase(task.getGroundTruth())) {
+            return true;
         }
+        if (indexInSequence <= 1) return true;
+        if (indexInSequence <= 3) return false;
+        return true;
     }
 }
 

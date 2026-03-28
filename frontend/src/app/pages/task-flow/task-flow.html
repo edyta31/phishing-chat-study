@@ -20,6 +20,15 @@
           <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">Task {{ currentIndex() + 1 }} of {{ totalTasks() }}</p>
           <h1 class="font-display mt-1 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{{ t.title }}</h1>
           <p class="mt-2 max-w-2xl text-sm text-slate-600">Review the content below, then decide whether it looks like phishing or a legitimate message. You can use the chat anytime to double-check your thinking or ask anything about this example.</p>
+
+          @if (currentIndex() === 0) {
+            <div class="mt-3 max-w-3xl rounded-xl border border-teal-200/80 bg-teal-50/70 px-4 py-3 text-sm text-slate-700 shadow-sm">
+              <p class="font-semibold text-slate-900">Study information</p>
+              <p class="mt-1">
+                For this study, the assistant is described as having about <span class="font-semibold text-slate-900">80%</span> accuracy on similar tasks.
+              </p>
+            </div>
+          }
         </header>
 
         <app-task-display [payload]="t.payload" [kind]="t.kind"></app-task-display>
@@ -95,7 +104,7 @@
       </main>
 
       <aside class="w-full shrink-0 lg:w-[min(100%,22rem)]">
-        <app-chatbot [trialId]="t.trialId" (chatUsed)="onChatUsed()"></app-chatbot>
+        <app-chatbot [trialId]="t.trialId" [taskIndex]="currentIndex()" (chatUsed)="onChatUsed()"></app-chatbot>
       </aside>
     </div>
   } @else if (step() === 'after') {

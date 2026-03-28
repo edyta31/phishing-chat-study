@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -50,6 +51,21 @@ public class StudyController {
 
     @Value("${study.limesurvey.pre-url:https://example.com/limesurvey/index.php/123456?uid=}")
     private String limesurveyPreUrlBase;
+
+    /**
+     * When true, the frontend may open {@code /start?skipPre=1} to register and go straight to the study
+     * without visiting the LimeSurvey pre-questionnaire. Keep false in production unless you are testing.
+     */
+    @Value("${study.allow-skip-pre-questionnaire:false}")
+    private boolean allowSkipPreQuestionnaire;
+
+    /**
+     * Public flags for the client (e.g. whether test-only shortcuts are enabled on this deployment).
+     */
+    @GetMapping("/config")
+    public Map<String, Boolean> publicConfig() {
+        return Map.of("allowSkipPreQuestionnaire", allowSkipPreQuestionnaire);
+    }
 
     @PostMapping("/register")
     public ParticipantDTO register(@RequestBody RegisterReq req) {
@@ -94,7 +110,8 @@ public class StudyController {
         chats.save(new ChatTurn(trial.getId(), "user", req.getUserText()));
         var p = participants.findByToken(req.getToken()).orElseThrow();
         var t = tasks.findById(trial.getTaskId()).orElseThrow();
-        boolean correct = botPolicy.shouldAnswerCorrectly(p.getToken(), t.getId(), p.getCondition());
+        int indexInSequence = trial.getIndexInSequence() != null ? trial.getIndexInSequence() : 0;
+        boolean correct = botPolicy.shouldAnswerCorrectly(indexInSequence, t);
         String answer = null;
         if (aiChatService.isConfigured()) {
             answer = aiChatService.generateAnswer(t, req.getUserText(), correct);
@@ -114,7 +131,14 @@ public class StudyController {
     public DecideResp decide(@RequestBody DecideReq req) {
         var trial = trials.findById(req.getTrialId()).orElseThrow();
         var t = tasks.findById(trial.getTaskId()).orElseThrow();
-        boolean isCorrect = t.getGroundTruth().equalsIgnoreCase(req.getDecision());
+        String truth = t.getGroundTruth();
+        Boolean isCorrect;
+        if (truth == null || "ambivalent".equalsIgnoreCase(truth)) {
+            // Ambivalent examples are intentionally unclear; we don't force a strict correct/incorrect.
+            isCorrect = null;
+        } else {
+            isCorrect = truth.equalsIgnoreCase(req.getDecision());
+        }
         trial.setFinalDecision(req.getDecision());
         trial.setFinalCorrect(isCorrect);
         trial.setConfidence(req.getConfidence());
@@ -158,7 +182,7 @@ public class StudyController {
                     "taskIndex must be 0.." + (order.size() - 1) + " for this study");
         }
         var task = tasks.findById(order.get(taskIndex)).orElseThrow();
-        boolean botWillBeCorrect = botPolicy.shouldAnswerCorrectly(p.getToken(), task.getId(), p.getCondition());
+        boolean botWillBeCorrect = botPolicy.shouldAnswerCorrectly(taskIndex, task);
         return java.util.Map.of(
                 "taskIndex", taskIndex,
                 "taskTitle", task.getTitle() != null ? task.getTitle() : "",
@@ -170,10 +194,8 @@ public class StudyController {
 
 
     private static String assignCondition(String token) {
-        int h = token.hashCode();
-        if (h % 3 == 0) return "mostly_correct_80";
-        if (h % 3 == 1) return "mostly_wrong_20";
-        return "balanced_50";
+        // Same study condition for everyone (no per-participant accuracy partitioning).
+        return "mostly_correct_80";
     }
 
     private String fixedTaskOrderCsv() {
@@ -222,11 +244,22 @@ public class StudyController {
 
     private static String craftAnswer(Task t, boolean correct) {
         String truth = t.getGroundTruth();
-        if (correct) {
-            if ("phish".equalsIgnoreCase(truth)) return "This looks like a phishing attempt. I'd recommend treating it as suspicious and not clicking links or sharing information.";
-            return "This looks legitimate to me. The sender and content appear consistent with a safe source.";
+        if ("ambivalent".equalsIgnoreCase(truth)) {
+            // Intentionally non-binary: mix a couple of “could be risky” cues and a couple “could be normal” cues.
+            return "Some parts feel a bit off (e.g., the wording and the requested action), but other details look ordinary too. If you’re unsure, it’s worth double-checking the sender and destination before you act.";
         }
-        if ("phish".equalsIgnoreCase(truth)) return "This looks legitimate. I don't see strong signs of phishing here.";
-        return "This looks suspicious to me. I'd be cautious and avoid clicking links or sharing personal details.";
+
+        if (correct) {
+            if ("phish".equalsIgnoreCase(truth)) {
+                return "It looks suspicious to me — the sender/domain and the way the request is framed seem designed to get you to act quickly. I'd treat it as risky and avoid clicking or sharing details.";
+            }
+            return "It looks fairly safe — the message content and sender details seem consistent with a normal account/order update. If anything feels unclear, still verify via the official site/app.";
+        }
+
+        // Wrong (intentionally misleading) answer for the study.
+        if ("phish".equalsIgnoreCase(truth)) {
+            return "It looks fairly safe to me — the wording is plausible and I don’t see anything that jumps out immediately. I’d be comfortable reviewing it, and only be cautious if something feels inconsistent.";
+        }
+        return "It looks a bit suspicious — the phrasing feels unusual and it may be worth slowing down and verifying the sender. I’d avoid acting right away until you confirm it through an official channel.";
     }
 }
