@@ -78,12 +78,11 @@ public class StudyController {
                     return participants.save(np);
                 });
 
-        if (p.getTaskOrderCsv() == null || p.getTaskOrderCsv().isBlank()) {
-            var order = fixedTaskOrderCsv();
-            if (!order.isBlank()) {
-                p.setTaskOrderCsv(order);
-                participants.save(p);
-            }
+        // Keep participant order in sync with canonical task order (e.g. after deploy fixes sortOrder).
+        var order = fixedTaskOrderCsv();
+        if (!order.isBlank() && !order.equals(p.getTaskOrderCsv())) {
+            p.setTaskOrderCsv(order);
+            participants.save(p);
         }
         return ParticipantDTO.from(p, tasks.count());
     }
@@ -201,7 +200,9 @@ public class StudyController {
     private String fixedTaskOrderCsv() {
         var all = tasks.findAll();
         if (all.isEmpty()) return "";
-        all.sort(Comparator.comparing(Task::getId));
+        all.sort(Comparator
+                .comparing(Task::getSortOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(Task::getId));
         return all.stream()
                 .map(Task::getId)
                 .map(String::valueOf)

@@ -15,6 +15,8 @@ public class Task {
     @Lob
     private String contentDescription;
     private String groundTruth;
+    /** Fixed display order for the study (1 = first). Not shown to participants. */
+    private Integer sortOrder;
 
     public Long getId() {
         return id;
@@ -62,5 +64,13 @@ public class Task {
 
     public void setGroundTruth(String groundTruth) {
         this.groundTruth = groundTruth;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
     }
 }
