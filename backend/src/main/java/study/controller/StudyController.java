@@ -98,18 +98,19 @@ public class StudyController {
             throw new IllegalStateException("No tasks configured for this study. Please add tasks and try again from the start page.");
         }
         // Reuse an in-progress trial so GET /next is idempotent (refresh does not advance).
-        Optional<Trial> open = trials.findByParticipantIdAndDecidedAtIsNull(p.getId()).stream()
+        Optional<Trial> open = trials.findOpenTrials(p.getId()).stream()
                 .max(Comparator
                         .comparing(Trial::getIndexInSequence, Comparator.nullsLast(Integer::compareTo))
                         .thenComparing(Trial::getId));
         if (open.isPresent()) {
             Trial t = open.get();
-            var task = tasks.findById(t.getTaskId()).orElseThrow();
+            var task = tasks.findById(t.getTaskId()).orElseThrow(() ->
+                    new IllegalStateException("Trial references missing task id=" + t.getTaskId()));
             int idx = t.getIndexInSequence() != null ? t.getIndexInSequence() : 0;
             return NextTaskDTO.of(t.getId(), idx, order.size(), task);
         }
 
-        long completedCount = trials.countByParticipantIdAndDecidedAtIsNotNull(p.getId());
+        long completedCount = trials.countDecidedTrials(p.getId());
         int idx = nextIndex(completedCount, order.size());
         if (idx >= order.size()) return new NextTaskDTO(true, null, idx, order.size());
         var task = tasks.findById(order.get(idx)).orElseThrow();
