@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -96,7 +97,20 @@ public class StudyController {
         if (order.isEmpty()) {
             throw new IllegalStateException("No tasks configured for this study. Please add tasks and try again from the start page.");
         }
-        var idx = nextIndex(trials.countByParticipantId(p.getId()), order.size());
+        // Reuse an in-progress trial so GET /next is idempotent (refresh does not advance).
+        Optional<Trial> open = trials.findByParticipantIdAndDecidedAtIsNull(p.getId()).stream()
+                .max(Comparator
+                        .comparing(Trial::getIndexInSequence, Comparator.nullsLast(Integer::compareTo))
+                        .thenComparing(Trial::getId));
+        if (open.isPresent()) {
+            Trial t = open.get();
+            var task = tasks.findById(t.getTaskId()).orElseThrow();
+            int idx = t.getIndexInSequence() != null ? t.getIndexInSequence() : 0;
+            return NextTaskDTO.of(t.getId(), idx, order.size(), task);
+        }
+
+        long completedCount = trials.countByParticipantIdAndDecidedAtIsNotNull(p.getId());
+        int idx = nextIndex(completedCount, order.size());
         if (idx >= order.size()) return new NextTaskDTO(true, null, idx, order.size());
         var task = tasks.findById(order.get(idx)).orElseThrow();
         var trial = trials.save(newTrial(p.getId(), task.getId(), idx));
