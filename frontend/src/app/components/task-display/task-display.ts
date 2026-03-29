@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnChanges } from '@angular/core';
+import { Component, HostListener, Input } from '@angular/core';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
@@ -7,41 +7,15 @@ import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-brows
   templateUrl: './task-display.html',
   styleUrl: './task-display.css'
 })
-export class TaskDisplay implements OnChanges {
+export class TaskDisplay {
   @Input() payload = '';
   @Input() kind: string = 'email';
-
-  /**
-   * Cached sanitizer output. Must not be recomputed on every CD cycle — new SafeHtml instances
-   * make [innerHTML] think the value changed and replace the DOM (images reload on any parent update).
-   */
-  safeHtml: SafeHtml | null = null;
-  safeUrl: SafeResourceUrl | null = null;
 
   /** Lightbox: enlarged image src when user clicks a task image. */
   zoomedSrc: string | null = null;
   zoomedAlt = '';
 
   constructor(private sanitizer: DomSanitizer) {}
-
-  ngOnChanges(): void {
-    if (
-      this.kind === 'email' ||
-      this.kind === 'post' ||
-      this.kind === 'sms' ||
-      this.kind === 'site' ||
-      this.kind === 'website'
-    ) {
-      this.safeHtml = this.sanitizer.bypassSecurityTrustHtml(this.payload || '');
-    } else {
-      this.safeHtml = null;
-    }
-    if (this.kind === 'site' && this.payload) {
-      this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.payload);
-    } else {
-      this.safeUrl = null;
-    }
-  }
 
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {
@@ -66,6 +40,20 @@ export class TaskDisplay implements OnChanges {
   closeZoom(): void {
     this.zoomedSrc = null;
     this.zoomedAlt = '';
+  }
+
+  get safeHtml(): SafeHtml | null {
+    if (this.kind === 'email' || this.kind === 'post' || this.kind === 'sms' || this.kind === 'site' || this.kind === 'website') {
+      return this.sanitizer.bypassSecurityTrustHtml(this.payload || '');
+    }
+    return null;
+  }
+
+  get safeUrl(): SafeResourceUrl | null {
+    if (this.kind === 'site' && this.payload) {
+      return this.sanitizer.bypassSecurityTrustResourceUrl(this.payload);
+    }
+    return null;
   }
 
   get isEmailOrPost(): boolean {
