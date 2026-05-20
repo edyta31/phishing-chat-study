@@ -6,6 +6,8 @@ import { Chatbot } from '../../components/chatbot/chatbot';
 
 type Step = 'task' | 'after';
 
+const DEFAULT_LIKERT = 3;
+
 @Component({
   selector: 'app-task-flow',
   standalone: true,
@@ -22,8 +24,8 @@ export class TaskFlow implements OnInit {
   error = signal('');
   usedChatbot = signal(false);
   decision = signal<'phish' | 'legit' | null>(null);
-  confidence = signal(3);
-  trustInBot = signal(3);
+  confidence = signal(DEFAULT_LIKERT);
+  trustInBot = signal(DEFAULT_LIKERT);
   afterUsedChatbot = signal<boolean | null>(null);
   submitting = signal(false);
   /** Shown when mock mode finishes instead of an external redirect. */
@@ -48,13 +50,19 @@ export class TaskFlow implements OnInit {
     this.fetchNext();
   }
 
+  private resetTaskForm(): void {
+    this.step.set('task');
+    this.decision.set(null);
+    this.confidence.set(DEFAULT_LIKERT);
+    this.trustInBot.set(DEFAULT_LIKERT);
+    this.usedChatbot.set(false);
+    this.afterUsedChatbot.set(null);
+  }
+
   fetchNext(): void {
     this.loading.set(true);
     this.error.set('');
-    this.step.set('task');
-    this.decision.set(null);
-    this.usedChatbot.set(false);
-    this.afterUsedChatbot.set(null);
+    this.resetTaskForm();
     this.study.getNextTask().subscribe({
       next: (res) => {
         this.loading.set(false);

@@ -47,7 +47,7 @@ export class Chatbot implements OnChanges {
 
   /** Shown in the peek bubble (collapsed) and as the first assistant turn when the thread is empty. */
   readonly assistantIntro =
-    "Hi — I'm Edyta, your study assistant. If anything feels unclear or you want to think the example through together, just message me. Happy to help :)";
+    "Hi — I'm the study assistant. If anything feels unclear or you want to think the example through together, just message me. Happy to help :)";
 
   @Input() trialId = 0;
   /** 0-based position in the fixed study sequence (same example → same index → same initial recommendation). */

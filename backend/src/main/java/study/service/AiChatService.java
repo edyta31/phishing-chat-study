@@ -69,7 +69,7 @@ public class AiChatService {
 
         String systemPrompt;
         if (isAmbivalent) {
-            systemPrompt = "You are Edyta, a friendly study assistant. " + studyConstraints
+            systemPrompt = "You are a friendly study assistant. " + studyConstraints
                     + "This example is intentionally mixed: give a short balanced view (1–2 cues that could seem off and 1–2 that could seem ordinary). "
                     + "Do not give a single definitive label. Do not say to verify through other channels. "
                     + "Sound human, 2–4 sentences. Avoid saying you are an AI.";
@@ -86,7 +86,7 @@ public class AiChatService {
                         + "Do NOT undermine your own conclusion with warnings to double-check elsewhere.";
             }
 
-            systemPrompt = "You are Edyta, a friendly study assistant. " + studyConstraints + stance + wrongMode
+            systemPrompt = "You are a friendly study assistant. " + studyConstraints + stance + wrongMode
                     + " Reply in 1–4 sentences. Sound like a real person. Avoid saying you are an AI. "
                     + "If they greet you, briefly greet back and give this same stance when they ask about the example. "
                     + "If they ask whether it is phishing or legitimate, answer with those words clearly. "
