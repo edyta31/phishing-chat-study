@@ -88,7 +88,7 @@ export class StudyService {
     }
     const t = this.getStoredToken();
     if (!t) throw new Error('No token');
-    return this.http.get<NextTaskResult>(`${API}/next`, { params: { token: t } });
+    return this.http.post<NextTaskResult>(`${API}/next`, { token: t });
   }
 
   sendChat(trialId: number, userText: string): Observable<{ answer: string }> {
@@ -120,7 +120,7 @@ export class StudyService {
     }
     const t = this.getStoredToken();
     if (!t) throw new Error('No token');
-    return this.http.get<{ redirect: string }>(`${API}/complete`, { params: { token: t } });
+    return this.http.post<{ redirect: string }>(`${API}/complete`, { token: t });
   }
 
   getPreQuestionnaireRedirect(uid: string): Observable<{ redirect: string }> {

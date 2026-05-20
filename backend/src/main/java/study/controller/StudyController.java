@@ -59,6 +59,10 @@ public class StudyController {
     @Value("${study.allow-skip-pre-questionnaire:false}")
     private boolean allowSkipPreQuestionnaire;
 
+    /** Local-only: bot correctness preview. Disabled in production (default false). */
+    @Value("${study.debug.enabled:false}")
+    private boolean debugEnabled;
+
     /**
      * Public flags for the client (e.g. whether test-only shortcuts are enabled on this deployment).
      */
@@ -87,11 +91,11 @@ public class StudyController {
         return ParticipantDTO.from(p, tasks.count());
     }
 
-    @GetMapping("/next")
-    public NextTaskDTO next(@RequestParam String token) {
-        var p = participants.findByToken(token).orElseThrow(() ->
+    @PostMapping("/next")
+    public NextTaskDTO next(@RequestBody RegisterReq req) {
+        var p = participants.findByToken(req.getToken()).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Please start the study from the start page first: open /start?token=YOUR_TOKEN in your browser."));
+                        "Please start the study from the start page first."));
         var order = parseOrder(p.getTaskOrderCsv());
         if (order.isEmpty()) {
             throw new IllegalStateException("No tasks configured for this study. Please add tasks and try again from the start page.");
@@ -149,8 +153,9 @@ public class StudyController {
         return new DecideResp(done);
     }
 
-    @GetMapping("/complete")
-    public CompleteResp complete(@RequestParam String token) {
+    @PostMapping("/complete")
+    public CompleteResp complete(@RequestBody RegisterReq req) {
+        String token = req.getToken();
         String redirect = limesurveyPostUrlBase.endsWith("=") ? limesurveyPostUrlBase + URLEncoder.encode(token, UTF_8) : limesurveyPostUrlBase;
         return new CompleteResp(redirect);
     }
@@ -164,14 +169,17 @@ public class StudyController {
     }
 
     /**
-     * Debug: for a given token and task index (0-based), returns what the bot will do for that example.
-     * Use this to verify "chatbot correct" vs "chatbot wrong" per task without playing through the study.
-     * Example: GET /api/debug/expected?token=test123&taskIndex=0
+     * Debug (only if {@code study.debug.enabled=true}): bot correctness preview for a task index.
+     * Example: POST /api/debug/expected body {@code {"token":"...","taskIndex":0}}
      */
-    @GetMapping("/debug/expected")
-    public java.util.Map<String, Object> debugExpected(@RequestParam String token, @RequestParam int taskIndex) {
-        var p = participants.findByToken(token).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown token. Register first via /start?uid=YOUR_UID"));
+    @PostMapping("/debug/expected")
+    public java.util.Map<String, Object> debugExpected(@RequestBody DebugExpectedReq req) {
+        if (!debugEnabled) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        var p = participants.findByToken(req.getToken()).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown token. Register first."));
+        int taskIndex = req.getTaskIndex();
         var order = parseOrder(p.getTaskOrderCsv());
         if (order.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No task order for this participant. Ensure tasks are seeded and participant has registered.");
