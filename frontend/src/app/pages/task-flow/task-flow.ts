@@ -13,7 +13,8 @@ const SLIDER_UNSELECTED = 0;
   selector: 'app-task-flow',
   standalone: true,
   imports: [TaskDisplay, Chatbot],
-  templateUrl: './task-flow.html'
+  templateUrl: './task-flow.html',
+  styleUrl: './task-flow.css'
 })
 export class TaskFlow implements OnInit {
   step = signal<Step>('task');
@@ -29,6 +30,7 @@ export class TaskFlow implements OnInit {
   confidenceTouched = signal(false);
   trustInBotTouched = signal(false);
   readonly sliderUnselected = SLIDER_UNSELECTED;
+  readonly likertSteps = [0, 1, 2, 3, 4, 5] as const;
   afterUsedChatbot = signal<boolean | null>(null);
   submitting = signal(false);
   /** Shown when mock mode finishes instead of an external redirect. */
@@ -144,6 +146,15 @@ export class TaskFlow implements OnInit {
     }
     this.trustInBotTouched.set(true);
     this.trustInBot.set(value);
+  }
+
+  /** Align tick labels with native range thumb centers (0–5 steps). */
+  tickLeft(step: number): string {
+    return `calc(0.5rem + ${step / 5} * (100% - 1rem))`;
+  }
+
+  tickLabel(step: number): string {
+    return step === 0 ? 'n/a' : String(step);
   }
 
   private redirectToPostQuestionnaire(): void {
