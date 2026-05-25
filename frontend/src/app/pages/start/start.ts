@@ -5,8 +5,7 @@ import { StudyService } from '../../services/study.service';
 @Component({
   selector: 'app-start',
   standalone: true,
-  templateUrl: './start.html',
-  styleUrl: './start.css'
+  templateUrl: './start.html'
 })
 export class StartComponent implements OnInit {
   error = '';

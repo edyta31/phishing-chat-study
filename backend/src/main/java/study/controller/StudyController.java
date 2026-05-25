@@ -20,7 +20,6 @@ import study.service.BotPolicyService;
 import java.net.URLEncoder;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +53,7 @@ public class StudyController {
 
     /**
      * When true, the frontend may open {@code /start?skipPre=1} to register and go straight to the study
-     * without visiting the LimeSurvey pre-questionnaire. Keep false in production unless you are testing.
+     * without visiting the LimeSurvey pre-questionnaire. Keep false in production unless testing.
      */
     @Value("${study.allow-skip-pre-questionnaire:false}")
     private boolean allowSkipPreQuestionnaire;
@@ -82,7 +81,7 @@ public class StudyController {
                     return participants.save(np);
                 });
 
-        // Keep participant order in sync with canonical task order (e.g. after deploy fixes sortOrder).
+        // Keep participant order in sync with canonical task order (e.g. after deploy fixes sortOrder)
         var order = fixedTaskOrderCsv();
         if (!order.isBlank() && !order.equals(p.getTaskOrderCsv())) {
             p.setTaskOrderCsv(order);
@@ -127,7 +126,7 @@ public class StudyController {
         trial.setBotAnswerCorrect(correct);
         trial.setBotAnswerText(answer);
         trials.save(trial);
-        return new ChatResp(answer, correct);
+        return new ChatResp(answer);
     }
 
     @PostMapping("/decide")
@@ -137,7 +136,7 @@ public class StudyController {
         String truth = t.getGroundTruth();
         Boolean isCorrect;
         if (truth == null || "ambivalent".equalsIgnoreCase(truth)) {
-            // Ambivalent examples are intentionally unclear; we don't force a strict correct/incorrect.
+            // Ambivalent example intentionally unclear
             isCorrect = null;
         } else {
             isCorrect = truth.equalsIgnoreCase(req.getDecision());
@@ -170,7 +169,6 @@ public class StudyController {
 
     /**
      * Debug (only if {@code study.debug.enabled=true}): bot correctness preview for a task index.
-     * Example: POST /api/debug/expected body {@code {"token":"...","taskIndex":0}}
      */
     @PostMapping("/debug/expected")
     public java.util.Map<String, Object> debugExpected(@RequestBody DebugExpectedReq req) {
@@ -201,7 +199,7 @@ public class StudyController {
 
 
     private static String assignCondition(String token) {
-        // Same study condition for everyone (no per-participant accuracy partitioning).
+        // Same study condition for everyone
         return "mostly_correct_80";
     }
 
@@ -215,12 +213,6 @@ public class StudyController {
                 .map(Task::getId)
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
-    }
-
-    private static String shuffleTaskOrder(List<Task> all, String seed) {
-        var ids = all.stream().map(Task::getId).collect(Collectors.toList());
-        Collections.shuffle(ids, new java.util.Random(seed.hashCode()));
-        return ids.stream().map(String::valueOf).collect(Collectors.joining(","));
     }
 
     private static List<Long> parseOrder(String csv) {

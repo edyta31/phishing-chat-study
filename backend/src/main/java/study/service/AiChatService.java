@@ -17,8 +17,8 @@ import study.model.Task;
 
 /**
  * Uses an LLM (OpenAI API) to generate varied, contextual answers for the chatbot.
- * We still control whether the answer should be "correct" or "wrong" for the study
- * via the prompt, so BotPolicyService decides and we ask the AI to argue in that direction.
+ * It is still controlled in the code whether the answer should be "correct" or "wrong" for the study
+ * via the prompt, so BotPolicyService decides and the AI is asked to argue in that direction.
  */
 @Service
 public class AiChatService {

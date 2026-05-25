@@ -42,15 +42,12 @@ const QUICK_QUESTIONS_BY_TASK_INDEX: readonly string[][] = [
 export class Chatbot implements OnChanges {
   private readonly messagesScroll = viewChild<ElementRef<HTMLElement>>('messagesScroll');
 
-  /** Served from `public/examples/` (see angular.json assets). */
-  readonly assistantAvatarSrc = '/examples/chatbotAvatar.svg';
-
   /** Shown in the peek bubble (collapsed) and as the first assistant turn when the thread is empty. */
   readonly assistantIntro =
     "Hi — I'm the study assistant. If anything feels unclear or you want to think the example through together, just message me. Happy to help :)";
 
   @Input() trialId = 0;
-  /** 0-based position in the fixed study sequence (same example → same index → same initial recommendation). */
+  /** 0-based position in the fixed study sequence (same example, same index, same initial recommendation). */
   @Input() taskIndex = 0;
   @Output() chatUsed = new EventEmitter<void>();
 
@@ -93,7 +90,7 @@ export class Chatbot implements OnChanges {
     return 'If you want a quick second opinion, ask me what stands out to you in this example.';
   }
 
-  /** Preset questions shown above the input; same task → same list. */
+  /** Preset questions shown above the input */
   quickQuestions(): string[] {
     const i = this.taskIndex;
     if (i >= 0 && i < QUICK_QUESTIONS_BY_TASK_INDEX.length) {
@@ -113,7 +110,7 @@ export class Chatbot implements OnChanges {
     this.sendMessage(text);
   }
 
-  /** Send a preset line (quick-reply chip) — same behaviour as typing and sending. */
+  /** Send a preset line (quick-reply chip), same behaviour as typing and sending. */
   sendPreset(text: string): void {
     const t = text.trim();
     if (!t) return;

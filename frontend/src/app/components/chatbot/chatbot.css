@@ -3,13 +3,12 @@
   scrollbar-color: rgb(148 163 184) transparent;
 }
 
-/* Peek row: speech “cloud” with tail toward the avatar */
+/* Peek bubbles when the chat panel is collapsed */
 .assistant-peek {
   animation: assistant-peek-in 0.45s ease-out both;
 }
 
 .assistant-speech {
-  position: relative;
   border-radius: 1rem;
   border: 1px solid rgb(226 232 240 / 0.95);
   background-color: rgb(255 255 255);
@@ -17,22 +16,6 @@
   box-shadow:
     0 1px 2px rgb(15 23 42 / 0.04),
     0 4px 14px rgb(15 23 42 / 0.06);
-}
-
-/* Tail points up toward the avatar (left side of the button: pl-4 + half of 2rem avatar) */
-.assistant-speech::before {
-  content: '';
-  position: absolute;
-  left: 2rem;
-  top: -6px;
-  width: 11px;
-  height: 11px;
-  background-color: rgb(255 255 255);
-  border-left: 1px solid rgb(226 232 240 / 0.95);
-  border-top: 1px solid rgb(226 232 240 / 0.95);
-  transform: translateX(-50%) rotate(45deg);
-  border-radius: 2px 0 0 0;
-  box-shadow: -1px -1px 2px rgb(15 23 42 / 0.03);
 }
 
 @keyframes assistant-peek-in {

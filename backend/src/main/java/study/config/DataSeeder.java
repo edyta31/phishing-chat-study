@@ -8,11 +8,8 @@ import study.repository.TaskRepository;
 
 /**
  * Seeds 5 example tasks for the user study when the database is empty.
- * Desired sequence for all participants (by {@link Task#getSortOrder()}):
+ * Same sequence for all participants (by {@link Task#getSortOrder()}):
  * 1) mail1, 2) site1, 3) mail3, 4) message1, 5) mail2 (ambivalent).
- * <p>
- * If tasks already exist (e.g. from an older seed), we backfill {@code sortOrder} from known titles
- * so order is correct even when DB ids are 1..5 in legacy insertion order.
  */
 @Configuration
 public class DataSeeder {
@@ -92,7 +89,6 @@ public class DataSeeder {
 
     /**
      * Legacy DBs had insertion order mail1, site1, mail2, message1, mail3 (ids 1–5).
-     * We assign canonical {@code sortOrder} from title so { study.controller.StudyControllerfixedTaskOrderCsv()} is correct.
      */
     private static void backfillSortOrder(TaskRepository tasks) {
         for (Task t : tasks.findAll()) {
@@ -104,7 +100,7 @@ public class DataSeeder {
         }
     }
 
-    /** Maps known task titles (old and new wording) to study position 1..5. */
+    /** Maps known task titles to study position 1..5. */
     private static Integer sortOrderForTitle(String title) {
         if (title == null) return null;
         if (title.contains("Company internal")) return 1;

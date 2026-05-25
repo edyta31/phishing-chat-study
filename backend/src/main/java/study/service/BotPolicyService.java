@@ -10,7 +10,7 @@ public class BotPolicyService {
      * Study design:
      * - first two examples: correct (matches ground truth)
      * - next two examples: wrong (opposite of ground truth)
-     * - last example: ambivalent (assistant stays non-binary; we still allow it to be treated as "correct")
+     * - last example: ambivalent (assistant stays non-binary, allowed to be treated as "correct")
      */
     public boolean shouldAnswerCorrectly(int indexInSequence, study.model.Task task) {
         if (task != null && task.getGroundTruth() != null && "ambivalent".equalsIgnoreCase(task.getGroundTruth())) {

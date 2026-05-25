@@ -5,21 +5,6 @@
     class="flex w-full items-center gap-2 rounded-xl border border-teal-200/80 bg-white px-4 py-3 text-sm font-medium text-teal-900 shadow-sm transition hover:border-teal-300 hover:bg-teal-50/80 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
     [attr.aria-expanded]="open()"
   >
-    @if (!open()) {
-      <span
-        class="flex h-8 w-8 shrink-0 overflow-hidden rounded-full shadow-inner ring-2 ring-teal-500/35 ring-offset-1 ring-offset-white"
-        aria-hidden="true"
-      >
-        <img
-          [src]="assistantAvatarSrc"
-          alt=""
-          width="32"
-          height="32"
-          decoding="async"
-          class="h-full w-full object-cover object-top"
-        />
-      </span>
-    }
     <span class="min-w-0 text-left">{{ open() ? 'Minimize assistant' : 'Chat with study assistant' }}</span>
     <svg class="ml-auto h-4 w-4 shrink-0 text-teal-600 transition-transform" [class.rotate-180]="open()" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -44,24 +29,9 @@
       aria-label="Study assistant chat"
     >
       <div class="shrink-0 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-teal-50/40 px-4 py-3">
-        <div class="flex items-center gap-3">
-          <div
-            class="flex h-10 w-10 shrink-0 overflow-hidden rounded-full shadow-md ring-2 ring-teal-500/35 ring-offset-2 ring-offset-teal-50/40"
-            aria-hidden="true"
-          >
-            <img
-              [src]="assistantAvatarSrc"
-              alt=""
-              width="40"
-              height="40"
-              decoding="async"
-              class="h-full w-full object-cover object-top"
-            />
-          </div>
-          <div class="min-w-0">
-            <p class="font-display text-base font-semibold tracking-tight text-slate-900">Study assistant</p>
-            <p class="text-xs text-slate-500">Happy to walk through this example with you — ask me whatever’s on your mind.</p>
-          </div>
+        <div class="min-w-0">
+          <p class="font-display text-base font-semibold tracking-tight text-slate-900">Study assistant</p>
+          <p class="text-xs text-slate-500">Happy to walk through this example with you — ask me whatever’s on your mind.</p>
         </div>
       </div>
 
@@ -71,69 +41,22 @@
       >
         @if (messages().length === 0 && !loading()) {
           <div class="space-y-4">
-            <div class="flex gap-2">
-              <div
-                class="mt-0.5 flex h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-teal-500/30 ring-offset-1 ring-offset-slate-50/80"
-                aria-hidden="true"
-              >
-                <img
-                  [src]="assistantAvatarSrc"
-                  alt=""
-                  width="32"
-                  height="32"
-                  decoding="async"
-                  class="h-full w-full object-cover object-top"
-                />
-              </div>
-              <div
-                class="assistant-speech-inner max-w-[min(100%,18rem)] rounded-2xl rounded-tl-md border border-slate-100/90 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm"
-              >
-                {{ assistantIntro }}
-              </div>
+            <div
+              class="assistant-speech-inner max-w-[min(100%,20rem)] rounded-2xl rounded-tl-md border border-slate-100/90 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm"
+            >
+              {{ assistantIntro }}
             </div>
-            <div class="flex gap-2">
-              <div
-                class="mt-0.5 flex h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-teal-500/30 ring-offset-1 ring-offset-slate-50/80"
-                aria-hidden="true"
-              >
-                <img
-                  [src]="assistantAvatarSrc"
-                  alt=""
-                  width="32"
-                  height="32"
-                  decoding="async"
-                  class="h-full w-full object-cover object-top"
-                />
-              </div>
-              <div
-                class="assistant-speech-inner max-w-[min(100%,18rem)] rounded-2xl rounded-tl-md border border-slate-100/90 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm"
-              >
-                {{ initialRecommendation() }}
-              </div>
+            <div
+              class="assistant-speech-inner max-w-[min(100%,20rem)] rounded-2xl rounded-tl-md border border-slate-100/90 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-slate-700 shadow-sm"
+            >
+              {{ initialRecommendation() }}
             </div>
           </div>
         }
         @for (msg of messages(); track $index) {
-          <div class="flex gap-2" [class.flex-row-reverse]="msg.role === 'user'">
-            @if (msg.role === 'user') {
-              <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-600" aria-hidden="true">You</div>
-            } @else {
-              <div
-                class="mt-0.5 flex h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-teal-500/30 ring-offset-1 ring-offset-slate-50/80"
-                aria-hidden="true"
-              >
-                <img
-                  [src]="assistantAvatarSrc"
-                  alt=""
-                  width="32"
-                  height="32"
-                  decoding="async"
-                  class="h-full w-full object-cover object-top"
-                />
-              </div>
-            }
+          <div class="flex" [class.justify-end]="msg.role === 'user'">
             <div
-              class="max-w-[min(100%,18rem)] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm"
+              class="max-w-[min(100%,20rem)] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm"
               [class.rounded-tr-md]="msg.role === 'user'"
               [class.rounded-tl-md]="msg.role === 'bot'"
               [class.bg-white]="msg.role === 'bot'"
@@ -148,20 +71,7 @@
           </div>
         }
         @if (loading()) {
-          <div class="flex gap-2">
-            <div
-              class="mt-0.5 flex h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-teal-500/30 ring-offset-1 ring-offset-slate-50/80"
-              aria-hidden="true"
-            >
-              <img
-                [src]="assistantAvatarSrc"
-                alt=""
-                width="32"
-                height="32"
-                decoding="async"
-                class="h-full w-full object-cover object-top"
-              />
-            </div>
+          <div class="flex">
             <div class="flex items-center gap-1 rounded-2xl rounded-tl-md border border-slate-100 bg-white px-4 py-3 shadow-sm">
               <span class="chat-dot h-2 w-2 rounded-full bg-teal-400"></span>
               <span class="chat-dot chat-dot-delay-1 h-2 w-2 rounded-full bg-teal-400"></span>

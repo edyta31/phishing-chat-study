@@ -6,14 +6,14 @@ import { Chatbot } from '../../components/chatbot/chatbot';
 
 type Step = 'task' | 'after';
 
-const DEFAULT_LIKERT = 3;
+/** Range input value before a 1–5 choice (leftmost step on the slider). */
+const SLIDER_UNSELECTED = 0;
 
 @Component({
   selector: 'app-task-flow',
   standalone: true,
   imports: [TaskDisplay, Chatbot],
-  templateUrl: './task-flow.html',
-  styleUrl: './task-flow.css'
+  templateUrl: './task-flow.html'
 })
 export class TaskFlow implements OnInit {
   step = signal<Step>('task');
@@ -24,8 +24,11 @@ export class TaskFlow implements OnInit {
   error = signal('');
   usedChatbot = signal(false);
   decision = signal<'phish' | 'legit' | null>(null);
-  confidence = signal(DEFAULT_LIKERT);
-  trustInBot = signal(DEFAULT_LIKERT);
+  confidence = signal<number | null>(null);
+  trustInBot = signal<number | null>(null);
+  confidenceTouched = signal(false);
+  trustInBotTouched = signal(false);
+  readonly sliderUnselected = SLIDER_UNSELECTED;
   afterUsedChatbot = signal<boolean | null>(null);
   submitting = signal(false);
   /** Shown when mock mode finishes instead of an external redirect. */
@@ -53,8 +56,10 @@ export class TaskFlow implements OnInit {
   private resetTaskForm(): void {
     this.step.set('task');
     this.decision.set(null);
-    this.confidence.set(DEFAULT_LIKERT);
-    this.trustInBot.set(DEFAULT_LIKERT);
+    this.confidence.set(null);
+    this.trustInBot.set(null);
+    this.confidenceTouched.set(false);
+    this.trustInBotTouched.set(false);
     this.usedChatbot.set(false);
     this.afterUsedChatbot.set(null);
   }
@@ -86,7 +91,7 @@ export class TaskFlow implements OnInit {
   }
 
   continueToAfter(): void {
-    if (!this.decision()) return;
+    if (!this.decision() || !this.confidenceTouched()) return;
     this.step.set('after');
   }
 
@@ -95,14 +100,15 @@ export class TaskFlow implements OnInit {
     if (!t) return;
     const token = this.study.getStoredToken();
     if (!token) return;
+    if (!this.trustInBotTouched()) return;
     this.submitting.set(true);
     this.study.submitDecision({
       trialId: t.trialId,
       token,
       decision: this.decision()!,
-      confidence: this.confidence(),
+      confidence: this.confidence()!,
       usedChatbot: this.afterUsedChatbot() ?? this.usedChatbot(),
-      trustInBot: this.trustInBot()
+      trustInBot: this.trustInBot()!
     }).subscribe({
       next: (res) => {
         this.submitting.set(false);
@@ -118,6 +124,26 @@ export class TaskFlow implements OnInit {
 
   setDecision(d: 'phish' | 'legit'): void {
     this.decision.set(d);
+  }
+
+  onConfidenceInput(value: number): void {
+    if (value === SLIDER_UNSELECTED) {
+      this.confidenceTouched.set(false);
+      this.confidence.set(null);
+      return;
+    }
+    this.confidenceTouched.set(true);
+    this.confidence.set(value);
+  }
+
+  onTrustInBotInput(value: number): void {
+    if (value === SLIDER_UNSELECTED) {
+      this.trustInBotTouched.set(false);
+      this.trustInBot.set(null);
+      return;
+    }
+    this.trustInBotTouched.set(true);
+    this.trustInBot.set(value);
   }
 
   private redirectToPostQuestionnaire(): void {

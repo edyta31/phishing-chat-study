@@ -4,7 +4,6 @@ import { Observable, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment.prod';
 import { MOCK_STUDY_LOCAL, MOCK_NEXT_TASK_RESULT } from '../dev-mock-study';
 
-//const API = '/api';
 const API = environment.apiUrl;
 
 export interface TaskPayload {

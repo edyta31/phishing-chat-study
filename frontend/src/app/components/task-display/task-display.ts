@@ -12,9 +12,7 @@ export class TaskDisplay implements OnChanges {
   @Input() kind: string = 'email';
 
   /**
-   * Cached once per payload/kind change. Getters that call bypassSecurityTrustHtml on every CD cycle
-   * return new SafeHtml instances → Angular treats [innerHTML] as changed → DOM replaced → images
-   * reload and the layout can jump to the top.
+   * Cached once per payload/kind change to avoid re-sanitizing on every change detection cycle
    */
   safeHtml: SafeHtml | null = null;
   safeUrl: SafeResourceUrl | null = null;
