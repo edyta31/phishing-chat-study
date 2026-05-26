@@ -33,6 +33,10 @@ export class TaskFlow implements OnInit {
   readonly likertSteps = [0, 1, 2, 3, 4, 5] as const;
   afterUsedChatbot = signal<boolean | null>(null);
   submitting = signal(false);
+  /** Effective "did they use the assistant" for gating the trust rating. */
+  didUseAssistant = computed(() => this.afterUsedChatbot() ?? this.usedChatbot());
+  /** Trust rating is only required when the assistant was used. */
+  trustRequired = computed(() => this.didUseAssistant() === true);
   /** Shown when mock mode finishes instead of an external redirect. */
   localPreviewComplete = signal(false);
 
@@ -102,7 +106,8 @@ export class TaskFlow implements OnInit {
     if (!t) return;
     const token = this.study.getStoredToken();
     if (!token) return;
-    if (!this.trustInBotTouched()) return;
+    const mustRateTrust = this.trustRequired();
+    if (mustRateTrust && !this.trustInBotTouched()) return;
     this.submitting.set(true);
     this.study.submitDecision({
       trialId: t.trialId,
@@ -110,7 +115,7 @@ export class TaskFlow implements OnInit {
       decision: this.decision()!,
       confidence: this.confidence()!,
       usedChatbot: this.afterUsedChatbot() ?? this.usedChatbot(),
-      trustInBot: this.trustInBot()!
+      trustInBot: mustRateTrust ? this.trustInBot()! : undefined
     }).subscribe({
       next: (res) => {
         this.submitting.set(false);
@@ -146,6 +151,15 @@ export class TaskFlow implements OnInit {
     }
     this.trustInBotTouched.set(true);
     this.trustInBot.set(value);
+  }
+
+  setAfterUsedChatbot(value: boolean): void {
+    this.afterUsedChatbot.set(value);
+    // If the assistant wasn't used, we must not collect a trust rating.
+    if (!value) {
+      this.trustInBotTouched.set(false);
+      this.trustInBot.set(null);
+    }
   }
 
   /** Align tick labels with native range thumb centers (0–5 steps). */
