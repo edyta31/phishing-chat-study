@@ -1,7 +1,10 @@
 package study.model;
 
 import javax.persistence.*;
-
+/**
+ * Unused leftover. Participant answers are stored on Trial (and chat on ChatTurn).
+ * This table is created by JPA but is always empty.
+ */
 @Entity
 public class UserResponse {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
